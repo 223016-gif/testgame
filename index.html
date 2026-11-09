@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kawaii Airport Burger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=M+PLUS+Rounded+1c:wght@700&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'M PLUS Rounded 1c', 'Fredoka One', sans-serif;
+            background-color: #fdf4ff;
+            background-image: radial-gradient(#fbcfe8 2px, transparent 2px);
+            background-size: 30px 30px;
+            touch-action: manipulation;
+            user-select: none;
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        /* 3Dボタン */
+        .btn-3d {
+            transition: all 0.1s;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+            cursor: pointer;
+        }
+        .btn-3d:active {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 rgba(0,0,0,0.15);
+        }
+
+        /* 具材グラフィック */
+        .burger-part {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.2s ease-out;
+        }
+        .part-bunBottom { 
+            width: 70px; height: 20px; background: #fcd34d; 
+            border-radius: 10px 10px 20px 20px; 
+            box-shadow: inset 0 -4px 0 rgba(217,119,6,0.3); 
+        }
+        .part-bunTop { 
+            width: 70px; height: 35px; background: #fcd34d; 
+            border-radius: 35px 35px 10px 10px; 
+            box-shadow: inset 0 -4px 0 rgba(217,119,6,0.3); 
+        }
+        .part-rawMeat { 
+            width: 60px; height: 15px; background: #fecdd3; 
+            border-radius: 10px; 
+        }
+        .part-cookedMeat { 
+            width: 65px; height: 15px; background: #78350f; 
+            border-radius: 10px; 
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3); 
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(0,0,0,0.2) 5px, rgba(0,0,0,0.2) 7px);
+        }
+        .part-lettuce { 
+            width: 75px; height: 10px; background: #4ade80; 
+            border-radius: 5px; 
+            box-shadow: inset 0 -2px 0 rgba(21,128,61,0.3); 
+            transform: translateX(-50%) rotate(-1deg); 
+        }
+        .part-cheese { 
+            width: 65px; height: 8px; background: #fef08a; 
+            border-radius: 2px; 
+            box-shadow: 1px 2px 0 rgba(0,0,0,0.1); 
+            transform: translateX(-50%) rotate(2deg); 
+        }
+        
+        /* ポテトグラフィック */
+        .part-rawPotato { 
+            width: 35px; height: 25px; background: #e7d5b1; 
+            border-radius: 40%; 
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1); 
+        }
+        .part-fries { 
+            width: 30px; height: 35px; background: #ef4444; 
+            border-radius: 4px 4px 10px 10px; 
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2); 
+        }
+        .part-fries::before {
+            content: ''; position: absolute; top: -12px; left: 4px; width: 22px; height: 12px;
+            background: repeating-linear-gradient(90deg, #fbbf24, #fbbf24 4px, transparent 4px, transparent 7px);
+        }
+
+        /* アニメーション */
+        @keyframes pulse-brown {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(180, 83, 9, 0.5); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(180, 83, 9, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(180, 83, 9, 0); }
+        }
+        @keyframes pulse-yellow {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.6); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes float-up {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-30px); }
+        }
+
+        .meat-cooked { animation: pulse-brown 1.5s infinite; cursor: pointer; }
+        .fries-cooked { animation: pulse-yellow 1.5s infinite; cursor: pointer; }
+        .customer-ready { animation: bounce 0.5s infinite; cursor: pointer; filter: drop-shadow(0 0 10px #4ade80); }
+        
+        .floating-money {
+            position: absolute;
+            color: #16a34a;
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff;
+            pointer-events: none;
+            animation: float-up 1s forwards;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen m-0 p-0 flex justify-center items-center">
+
+<div class="relative w-full h-full bg-sky-50 flex flex-col">
+    
+    <!-- UIヘッダー -->
+    <div class="bg-pink-400 text-white p-3 flex justify-between items-center shadow-md z-10 rounded-b-3xl">
+        <div class="flex flex-col">
+            <span class="text-sm sm:text-base font-bold bg-pink-500 px-3 py-1 rounded-full shadow-inner">Level <span id="ui-level">1</span></span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">⏳</span>
+            <span id="ui-time" class="text-2xl sm:text-3xl font-black drop-shadow-md w-16 text-center">30</span>
+        </div>
+        <div class="flex items-center gap-1 bg-yellow-400 text-yellow-900 px-4 py-1 rounded-full shadow-inner">
+            <span class="font-bold text-lg">¥</span>
+            <span id="ui-money" class="text-xl sm:text-2xl font-black">0</span>
+        </div>
+    </div>
+
+    <!-- メインゲームエリア -->
+    <div class="flex-grow flex flex-col p-2 gap-2 relative">
+        
+        <!-- 上段：お客様 -->
+        <div id="customers-container" class="flex-grow flex justify-around items-end pb-2 relative h-1/3">
+            <!-- JSで生成 -->
+        </div>
+
+        <!-- 中段：調理場 & お皿 -->
+        <div class="flex gap-2 h-40 sm:h-48">
+            <!-- 調理場 (グリル & フライヤー) -->
+            <div class="flex-1 flex flex-col gap-2">
+                <div class="flex-1 bg-stone-100 rounded-2xl border-4 border-stone-300 shadow-inner flex relative p-1 items-center justify-center">
+                    <div class="absolute top-1 left-2 text-[10px] font-bold text-stone-400">🔥 グリル</div>
+                    <div id="grill-slots" class="flex gap-2 w-full h-full items-center justify-center pt-2"></div>
+                </div>
+                <div id="fryer-container" class="hidden flex-1 bg-yellow-50 rounded-2xl border-4 border-yellow-200 shadow-inner flex relative p-1 items-center justify-center">
+                    <div class="absolute top-1 left-2 text-[10px] font-bold text-yellow-500">🍟 フライヤー</div>
+                    <div id="fryer-slots" class="flex gap-2 w-full h-full items-center justify-center pt-2"></div>
+                </div>
+            </div>
+
+            <!-- お皿 & ゴミ箱 -->
+            <div class="flex-1 bg-blue-50 rounded-2xl border-4 border-blue-200 shadow-inner flex flex-col items-center justify-end relative pb-4">
+                <button id="btn-trash" class="absolute top-2 right-2 btn-3d bg-red-400 text-white rounded-xl w-12 h-12 flex items-center justify-center shadow-md text-2xl z-20">
+                    🗑️
+                </button>
+                <div class="absolute top-2 left-2 text-[10px] font-bold text-blue-400">🍽️ トレイ</div>
+                <div class="w-4/5 h-4 bg-gray-300 rounded-[50%] absolute bottom-2 shadow-md"></div>
+                <div id="tray" class="relative w-full h-full mb-2"></div>
+            </div>
+        </div>
+
+        <!-- 下段：具材ボタン -->
+        <div class="bg-white rounded-3xl p-3 sm:p-4 border-4 border-purple-200 shadow-lg flex justify-center gap-2 sm:gap-4 flex-wrap">
+            <button class="ing-btn btn-3d bg-orange-50 border-4 border-orange-300 rounded-3xl p-2 w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center" data-ing="bunBottom">
+                <span class="text-3xl sm:text-4xl">🍞</span><span class="text-xs sm:text-sm font-bold text-orange-600 mt-1">下パン</span>
+            </button>
+            <button id="btn-raw-meat" class="btn-3d bg-pink-100 border-4 border-pink-400 rounded-3xl p-2 w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center shadow-md">
+                <span class="text-3xl sm:text-4xl">🥩</span><span class="text-xs sm:text-sm font-bold text-pink-600 mt-1">肉焼く</span>
+            </button>
+            <button id="btn-raw-fries" class="hidden btn-3d bg-yellow-100 border-4 border-yellow-400 rounded-3xl p-2 w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center shadow-md">
+                <span class="text-3xl sm:text-4xl">🥔</span><span class="text-xs sm:text-sm font-bold text-yellow-700 mt-1">ポテト</span>
+            </button>
+            <button class="ing-btn hidden btn-3d bg-green-50 border-4 border-green-300 rounded-3xl p-2 w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center" id="btn-lettuce" data-ing="lettuce">
+                <span class="text-3xl sm:text-4xl">🥬</span><span class="text-xs sm:text-sm font-bold text-green-600 mt-1">レタス</span>
+            </button>
+            <button class="ing-btn hidden btn-3d bg-yellow-50 border-4 border-yellow-400 rounded-3xl p-2 w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center" id="btn-cheese" data-ing="cheese">
+                <span class="text-3xl sm:text-4xl">🧀</span><span class="text-xs sm:text-sm font-bold text-yellow-600 mt-1">チーズ</span>
+            </button>
+            <button class="ing-btn btn-3d bg-orange-100 border-4 border-orange-400 rounded-3xl p-2 w-20 h-20 sm:w-24 sm:h-24 flex flex-col items-center justify-center" data-ing="bunTop">
+                <span class="text-3xl sm:text-4xl">🍔</span><span class="text-xs sm:text-sm font-bold text-orange-700 mt-1">上パン</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- モーダル -->
+    <div id="modal" class="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-3xl text-center shadow-2xl border-4 border-pink-400 max-w-[90%] w-80">
+            <h1 id="modal-title" class="text-3xl font-black text-pink-500 mb-2 drop-shadow-sm">Kawaii<br>Airport Burger</h1>
+            <p id="modal-desc" class="text-stone-600 mb-4 text-sm font-bold">1プレイ30秒のスピード勝負！<br>注文通りにバーガーを作ろう🍔</p>
+            <div id="modal-stats" class="hidden bg-pink-50 rounded-xl p-3 mb-4 border-2 border-pink-200">
+                <p class="text-lg font-bold text-stone-700">売上: ¥<span id="modal-score" class="text-pink-500">0</span></p>
+                <p class="text-sm font-bold text-stone-500">目標: ¥<span id="modal-target">0</span></p>
+            </div>
+            <button id="btn-modal-action" class="btn-3d bg-gradient-to-r from-pink-400 to-purple-400 text-white font-black text-xl px-8 py-3 rounded-full w-full shadow-lg">
+                PLAY
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const LEVELS = [
+        { target: 400, maxP: 22, active: ['bunBottom', 'cookedMeat', 'bunTop'], recipes: [['bunBottom', 'cookedMeat', 'bunTop']] },
+        { target: 800, maxP: 20, active: ['bunBottom', 'cookedMeat', 'cheese', 'bunTop'], recipes: [['bunBottom', 'cookedMeat', 'cheese', 'bunTop'], ['bunBottom', 'cookedMeat', 'bunTop']] },
+        { target: 1200, maxP: 18, active: ['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop'], recipes: [['bunBottom', 'cookedMeat', 'lettuce', 'bunTop'], ['bunBottom', 'cookedMeat', 'cheese', 'bunTop']] },
+        { target: 1800, maxP: 16, active: ['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], recipes: [['bunBottom', 'cookedMeat', 'cheese', 'bunTop', 'fries'], ['bunBottom', 'cookedMeat', 'lettuce', 'bunTop']] },
+        { target: 2200, maxP: 14, active: ['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], recipes: [['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], ['bunBottom', 'cookedMeat', 'lettuce', 'bunTop', 'fries']] },
+        { target: 2600, maxP: 12, active: ['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], recipes: [['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], ['bunBottom', 'cookedMeat', 'cheese', 'bunTop', 'fries']] },
+        { target: 3000, maxP: 10, active: ['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], recipes: [['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], ['bunBottom', 'cookedMeat', 'cookedMeat', 'bunTop']] },
+        { target: 3500, maxP: 9, active: ['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], recipes: [['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], ['bunBottom', 'cookedMeat', 'cookedMeat', 'bunTop', 'fries']] },
+        { target: 4000, maxP: 8, active: ['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], recipes: [['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], ['bunBottom', 'cookedMeat', 'lettuce', 'cookedMeat', 'bunTop']] },
+        { target: 5000, maxP: 7, active: ['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], recipes: [['bunBottom', 'cookedMeat', 'lettuce', 'cheese', 'bunTop', 'fries'], ['bunBottom', 'cookedMeat', 'cheese', 'cookedMeat', 'cheese', 'bunTop', 'fries']] }
+    ];
+
+    const PRICES = { bunBottom: 50, cookedMeat: 200, lettuce: 100, cheese: 100, bunTop: 50, fries: 150 };
+
+    let gameState = 'IDLE'; 
+    let levelIdx = 0;
+    let money = 0;
+    let timeLeft = 30.0;
+    
+    let grillSlots = [null, null, null];
+    let fryerSlots = [null, null];
+    let tray = [];
+    let customers = [];
+    let customerIdCounter = 0;
+    let gameLoopInterval = null;
+
+    const uiTime = document.getElementById('ui-time');
+    const uiLevel = document.getElementById('ui-level');
+    const uiMoney = document.getElementById('ui-money');
+    const grillSlotsEl = document.getElementById('grill-slots');
+    const fryerSlotsEl = document.getElementById('fryer-slots');
+    const fryerContainer = document.getElementById('fryer-container');
+    const trayEl = document.getElementById('tray');
+    const customersContainer = document.getElementById('customers-container');
+    const modal = document.getElementById('modal');
+
+    // 操作系
+    document.getElementById('btn-modal-action').addEventListener('click', () => {
+        if (gameState === 'GAMEOVER' && money < LEVELS[levelIdx].target) {
+            // 失敗時は同じレベルから
+        } else if (gameState === 'GAMEOVER') {
+            levelIdx = Math.min(levelIdx + 1, LEVELS.length - 1);
+        } else {
+            levelIdx = 0; // 初期スタート
+        }
+        startGame();
+    });
+
+    document.getElementById('btn-trash').addEventListener('click', () => {
+        tray = [];
+        renderTray();
+        checkOrders();
+    });
+
+    document.querySelectorAll('.ing-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (gameState !== 'PLAYING') return;
+            tray.push(btn.getAttribute('data-ing'));
+            renderTray();
+            checkOrders();
+        });
+    });
+
+    document.getElementById('btn-raw-meat').addEventListener('click', () => {
+        if (gameState !== 'PLAYING') return;
+        const idx = grillSlots.findIndex(s => s === null);
+        if (idx !== -1) {
+            grillSlots[idx] = { state: 'raw', timer: 3.0 };
+            renderGrill();
+        }
+    });
+
+    document.getElementById('btn-raw-fries').addEventListener('click', () => {
+        if (gameState !== 'PLAYING') return;
+        const idx = fryerSlots.findIndex(s => s === null);
+        if (idx !== -1) {
+            fryerSlots[idx] = { state: 'raw', timer: 3.0 };
+            renderFryer();
+        }
+    });
+
+    function startGame() {
+        gameState = 'PLAYING';
+        money = 0;
+        timeLeft = 30.0;
+        grillSlots = [null, null, null];
+        fryerSlots = [null, null];
+        tray = [];
+        customers = [];
+        
+        uiMoney.innerText = money;
+        uiLevel.innerText = levelIdx + 1;
+        modal.classList.add('hidden');
+
+        const lv = LEVELS[levelIdx];
+        document.getElementById('btn-lettuce').classList.toggle('hidden', !lv.active.includes('lettuce'));
+        document.getElementById('btn-cheese').classList.toggle('hidden', !lv.active.includes('cheese'));
+        const hasFries = lv.active.includes('fries');
+        document.getElementById('btn-raw-fries').classList.toggle('hidden', !hasFries);
+        fryerContainer.classList.toggle('hidden', !hasFries);
+
+        renderGrill();
+        if(hasFries) renderFryer();
+        renderTray();
+        renderCustomers();
+
+        if (gameLoopInterval) clearInterval(gameLoopInterval);
+        gameLoopInterval = setInterval(gameLoop, 100);
+    }
+
+    function gameLoop() {
+        if (gameState !== 'PLAYING') return;
+
+        timeLeft -= 0.1;
+        uiTime.innerText = Math.ceil(timeLeft);
+        if (timeLeft <= 10) uiTime.classList.add('text-red-500', 'animate-pulse');
+        else uiTime.classList.remove('text-red-500', 'animate-pulse');
+
+        if (timeLeft <= 0) {
+            endLevel();
+            return;
+        }
+
+        let grillChanged = false;
+        grillSlots.forEach(s => {
+            if (s && s.state === 'raw') {
+                s.timer -= 0.1;
+                if (s.timer <= 0) { s.state = 'cooked'; grillChanged = true; }
+            }
+        });
+        if (grillChanged) renderGrill();
+
+        let fryerChanged = false;
+        fryerSlots.forEach(s => {
+            if (s && s.state === 'raw') {
+                s.timer -= 0.1;
+                if (s.timer <= 0) { s.state = 'cooked'; fryerChanged = true; }
+            }
+        });
+        if (fryerChanged) renderFryer();
+
+        let customerChanged = false;
+        customers.forEach(c => {
+            c.patience -= 0.1;
+            const bar = document.getElementById(`patience-bar-${c.id}`);
+            if (bar) {
+                const percent = Math.max(0, (c.patience / LEVELS[levelIdx].maxP) * 100);
+                bar.style.width = `${percent}%`;
+                if (percent < 30) bar.classList.replace('bg-green-400', 'bg-red-400');
+            }
+            if (c.patience <= 0) { c.leave = true; customerChanged = true; }
+        });
+
+        if (customerChanged) {
+            customers = customers.filter(c => !c.leave);
+            renderCustomers();
+        }
+
+        if (customers.length < 3 && Math.random() < 0.05) spawnCustomer();
+    }
+
+    function endLevel() {
+        gameState = 'GAMEOVER';
+        clearInterval(gameLoopInterval);
+        modal.classList.remove('hidden');
+        document.getElementById('modal-stats').classList.remove('hidden');
+        document.getElementById('modal-score').innerText = money;
+        document.getElementById('modal-target').innerText = LEVELS[levelIdx].target;
+
+        if (money >= LEVELS[levelIdx].target) {
+            if (levelIdx < LEVELS.length - 1) {
+                document.getElementById('modal-title').innerText = 'LEVEL CLEARED! 🌟';
+                document.getElementById('modal-desc').innerText = '目標達成！次のレベルへ進もう！';
+                document.getElementById('btn-modal-action').innerText = 'NEXT LEVEL';
+            } else {
+                document.getElementById('modal-title').innerText = 'ALL CLEARED! 🎉';
+                document.getElementById('modal-desc').innerText = '全10レベルクリア！あなたは最高のシェフです！';
+                document.getElementById('btn-modal-action').innerText = 'PLAY AGAIN';
+                levelIdx = 0; // 最初から
+            }
+        } else {
+            document.getElementById('modal-title').innerText = 'GAME OVER 💦';
+            document.getElementById('modal-desc').innerText = '目標売上に届きませんでした…もう一度挑戦！';
+            document.getElementById('btn-modal-action').innerText = 'RETRY';
+        }
+    }
+
+    function renderGrill() {
+        grillSlotsEl.innerHTML = '';
+        grillSlots.forEach((slot, i) => {
+            const div = document.createElement('div');
+            div.className = 'w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-4 flex items-center justify-center relative overflow-hidden transition-all ' + 
+                (slot === null ? 'border-dashed border-stone-300 bg-stone-200' : 
+                (slot.state === 'raw' ? 'border-pink-300 bg-pink-100' : 'border-amber-500 bg-amber-100 meat-cooked btn-3d'));
+            
+            if (slot !== null) {
+                const meat = document.createElement('div');
+                meat.className = `burger-part ${slot.state === 'raw' ? 'part-rawMeat' : 'part-cookedMeat'}`;
+                meat.style.position = 'relative'; meat.style.left = '0'; meat.style.transform = 'scale(0.8)';
+                div.appendChild(meat);
+
+                if (slot.state === 'raw') {
+                    const bar = document.createElement('div');
+                    bar.className = 'absolute bottom-0 left-0 w-full bg-orange-400 opacity-50';
+                    bar.style.height = `${((3.0 - slot.timer) / 3.0) * 100}%`;
+                    div.appendChild(bar);
+                } else {
+                    div.addEventListener('click', () => {
+                        if (gameState !== 'PLAYING') return;
+                        tray.push('cookedMeat');
+                        grillSlots[i] = null;
+                        renderGrill();
+                        renderTray();
+                        checkOrders();
+                    });
+                }
+            }
+            grillSlotsEl.appendChild(div);
+        });
+    }
+
+    function renderFryer() {
+        fryerSlotsEl.innerHTML = '';
+        fryerSlots.forEach((slot, i) => {
+            const div = document.createElement('div');
+            div.className = 'w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-4 flex items-center justify-center relative overflow-hidden transition-all ' + 
+                (slot === null ? 'border-dashed border-yellow-300 bg-yellow-100' : 
+                (slot.state === 'raw' ? 'border-orange-200 bg-orange-50' : 'border-red-400 bg-red-100 fries-cooked btn-3d'));
+            
+            if (slot !== null) {
+                const potato = document.createElement('div');
+                potato.className = `burger-part ${slot.state === 'raw' ? 'part-rawPotato' : 'part-fries'}`;
+                potato.style.position = 'relative'; potato.style.left = '0'; potato.style.transform = 'scale(0.8)';
+                div.appendChild(potato);
+
+                if (slot.state === 'raw') {
+                    const bar = document.createElement('div');
+                    bar.className = 'absolute bottom-0 left-0 w-full bg-orange-400 opacity-50';
+                    bar.style.height = `${((3.0 - slot.timer) / 3.0) * 100}%`;
+                    div.appendChild(bar);
+                } else {
+                    div.addEventListener('click', () => {
+                        if (gameState !== 'PLAYING') return;
+                        tray.push('fries');
+                        fryerSlots[i] = null;
+                        renderFryer();
+                        renderTray();
+                        checkOrders();
+                    });
+                }
+            }
+            fryerSlotsEl.appendChild(div);
+        });
+    }
+
+    function renderTray() {
+        trayEl.innerHTML = '';
+        let btm = 0;
+        tray.forEach((ing, i) => {
+            const el = document.createElement('div');
+            el.className = `burger-part part-${ing}`;
+            el.style.zIndex = i + 1;
+            
+            if (ing === 'fries') {
+                el.style.left = '80%'; el.style.bottom = '5px';
+            } else {
+                el.style.bottom = `${btm}px`;
+                let offset = 8;
+                if(ing === 'bunBottom') offset = 15;
+                if(ing === 'cookedMeat') offset = 12;
+                if(ing === 'lettuce') offset = 10;
+                if(ing === 'bunTop') offset = 20;
+                btm += offset;
+            }
+            trayEl.appendChild(el);
+        });
+    }
+
+    function spawnCustomer() {
+        const lv = LEVELS[levelIdx];
+        const recipe = lv.recipes[Math.floor(Math.random() * lv.recipes.length)];
+        const emojis = ['🐰', '🐱', '🐼', '🐶', '🐨', '🦊'];
+        
+        customers.push({
+            id: customerIdCounter++,
+            emoji: emojis[Math.floor(Math.random() * emojis.length)],
+            order: recipe,
+            patience: lv.maxP,
+            isReady: false
+        });
+        renderCustomers();
+        checkOrders();
+    }
+
+    function renderCustomers() {
+        customersContainer.innerHTML = '';
+        customers.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'flex flex-col items-center relative transition-transform';
+            if (c.isReady) div.classList.add('customer-ready');
+
+            const bubble = document.createElement('div');
+            bubble.className = `bg-white rounded-2xl p-2 mb-2 shadow-lg border-2 ${c.isReady ? 'border-green-400 bg-green-50' : 'border-gray-200'} relative w-16 h-16 flex items-end justify-center`;
+            bubble.innerHTML = `<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-inherit border-b-2 border-r-2 border-inherit transform rotate-45"></div>`;
+            
+            const mini = document.createElement('div');
+            mini.className = 'relative w-full h-full';
+            let mBtm = 0;
+            c.order.forEach((ing, i) => {
+                const part = document.createElement('div');
+                part.className = `burger-part part-${ing}`;
+                part.style.transform = `translateX(-50%) scale(0.4)`;
+                part.style.transformOrigin = 'bottom center';
+                part.style.zIndex = i + 1;
+                if (ing === 'fries') {
+                    part.style.left = '80%'; part.style.bottom = '0px';
+                } else {
+                    part.style.bottom = `${mBtm}px`;
+                    let offset = 6;
+                    if(ing === 'bunBottom') offset = 8;
+                    if(ing === 'cookedMeat') offset = 6;
+                    if(ing === 'lettuce') offset = 4;
+                    mBtm += offset;
+                }
+                mini.appendChild(part);
+            });
+            bubble.appendChild(mini);
+
+            if (c.isReady) {
+                const ok = document.createElement('div');
+                ok.className = 'absolute -top-3 -right-3 bg-green-500 text-white text-xs font-bold px-1 rounded-full animate-bounce';
+                ok.innerText = 'OK!';
+                bubble.appendChild(ok);
+            }
+
+            const char = document.createElement('div');
+            char.className = 'text-5xl drop-shadow-md';
+            char.innerText = c.emoji;
+
+            const gauge = document.createElement('div');
+            gauge.className = 'w-12 h-2 bg-gray-300 rounded-full mt-1 overflow-hidden';
+            const bar = document.createElement('div');
+            bar.id = `patience-bar-${c.id}`;
+            bar.className = 'h-full bg-green-400 transition-all';
+            bar.style.width = `${(c.patience / LEVELS[levelIdx].maxP) * 100}%`;
+            gauge.appendChild(bar);
+
+            div.appendChild(bubble);
+            div.appendChild(char);
+            div.appendChild(gauge);
+
+            div.addEventListener('click', (e) => {
+                if (gameState !== 'PLAYING' || !c.isReady) return;
+                
+                let earned = 0;
+                c.order.forEach(ing => earned += PRICES[ing]);
+                money += earned;
+                uiMoney.innerText = money;
+
+                const floatTxt = document.createElement('div');
+                floatTxt.className = 'floating-money';
+                floatTxt.innerText = `+¥${earned}`;
+                floatTxt.style.left = `${e.clientX}px`;
+                floatTxt.style.top = `${e.clientY - 20}px`;
+                document.body.appendChild(floatTxt);
+                setTimeout(() => floatTxt.remove(), 1000);
+
+                tray = [];
+                c.leave = true;
+                customers = customers.filter(cust => !cust.leave);
+                
+                renderTray();
+                renderCustomers();
+                checkOrders();
+            });
+
+            customersContainer.appendChild(div);
+        });
+    }
+
+    function checkOrders() {
+        const tBurger = tray.filter(i => i !== 'fries').join(',');
+        const tFries = tray.filter(i => i === 'fries').length;
+
+        let changed = false;
+        customers.forEach(c => {
+            const oBurger = c.order.filter(i => i !== 'fries').join(',');
+            const oFries = c.order.filter(i => i === 'fries').length;
+            
+            const isMatch = (tBurger === oBurger && tFries === oFries && tray.length > 0);
+            if (c.isReady !== isMatch) {
+                c.isReady = isMatch;
+                changed = true;
+            }
+        });
+        if (changed) renderCustomers();
+    }
+</script>
+</body>
+</html>
